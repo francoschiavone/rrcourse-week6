@@ -436,6 +436,7 @@
       if (body[0].intersects(food)) {
         body.push(new Rectangle(0, 0, 10, 10));
         score += 1;
+        sendscore(score);
         food.x = random(canvas.width / 10 - 1) * 10;
         food.y = random(canvas.height / 10 - 1) * 10;
         aEat.play();
@@ -444,6 +445,7 @@
       // Apple Intersects
       if (body[0].intersects(apple)) {
         score += 5;
+        sendscore(score);
         apple.x = random(canvas.width / 10 - 1) * 10;
         apple.y = random(canvas.height / 10 - 1) * 10;
         aEat.play();
@@ -513,6 +515,23 @@
       lastPress = null;
     }
   };
+
+  function sendscore(score) {
+    fetch(`https://jsonplaceholder.typicode.com/posts?=${score}`, {
+        method: 'GET'
+    })
+
+    .then(function(response) {
+        if(response.ok) {
+            console.log('Score sent successfully');
+            console.log(response);
+        }
+    })
+
+    .catch(function(error) {
+        console.log('Error trying to send the score');
+    });
+  }
 
   window.addEventListener('load', init, false)
   window.addEventListener('resize', init, false);
