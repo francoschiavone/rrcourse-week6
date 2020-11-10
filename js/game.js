@@ -216,6 +216,7 @@
   function repaint() {
     window.requestAnimationFrame(repaint);
 
+    ctx.imageSmoothingEnabled = false;
     var now = Date.now(),
     deltaTime = (now - lastUpdate) / 1000;
     if (deltaTime > 1) {
