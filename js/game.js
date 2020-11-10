@@ -13,6 +13,10 @@
       highscoresScene = null,
       score = 0,
       dir = 0,
+      lastUpdate = 0,
+      FPS = 0,
+      frames = 0,
+      acumDelta = 0,
       //var wall = [],
       highscores = [],
       posHighscore = 10,
@@ -194,6 +198,22 @@
 
   function repaint() {
     window.requestAnimationFrame(repaint);
+
+    var now = Date.now(),
+    deltaTime = (now - lastUpdate) / 1000;
+    if (deltaTime > 1) {
+      deltaTime = 0;
+    }
+    lastUpdate = now;
+
+    frames += 1;
+    acumDelta += deltaTime;
+    if (acumDelta > 1) {
+      FPS = frames;
+      frames = 0;
+      acumDelta -= 1;
+    }
+
     if (scenes.length) {
       scenes[currentScene].paint(ctx);
     }
@@ -253,6 +273,7 @@
     ctx.textAlign = 'center';
     ctx.fillText('SNAKE', 150, 60);
     ctx.fillText('Press Enter', 150, 90);
+    ctx.fillText('FPS: ' + FPS, 150, 10);
   };
 
   mainScene.act = function () {
@@ -303,6 +324,7 @@
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'left';
     ctx.fillText('Score: ' + score, 0, 10);
+    ctx.fillText('FPS: ' + FPS, 150, 10);
     // Debug last key pressed
     //ctx.fillText('Last Press: '+lastPress,0,20);
     // Draw pause
@@ -416,7 +438,7 @@
   highscoresScene = new Scene();
   highscoresScene.paint = function (ctx) {
     var i = 0,
-    l = 0;
+        l = 0;
 
     // Clean canvas
     ctx.fillStyle = '#09232f';
@@ -426,6 +448,7 @@
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.fillText('HIGH SCORES', 150, 30);
+    ctx.fillText('FPS: ' + FPS, 150, 10);
 
     // Draw high scores
     ctx.textAlign = 'right';
