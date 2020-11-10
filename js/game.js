@@ -5,10 +5,17 @@
       ctx = null,
       lastPress = null,
       pause = true,
-      gameover = true,
+      gameover = false,
+      currentScene = 0,
+      scenes = [],
+      mainScene = null,
+      gameScene = null,
+      highscoresScene = null,
       score = 0,
       dir = 0,
-      //wall = [],
+      //var wall = [],
+      highscores = [],
+      posHighscore = 10,
       body = [],
       food = null,
       iBody = new Image(),
@@ -22,7 +29,20 @@
       KEY_DOWN = 40,
       KEY_ENTER = 13;
 
+  window.requestAnimationFrame = (function () {
+    return window.requestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      function (callback) {
+        window.setTimeout(callback, 17);
+      };
+  }());
+
   document.addEventListener('keydown', function (evt) {
+    if (evt.which >= 37 && evt.which <= 40) {
+      evt.preventDefault();
+    }
+
     lastPress = evt.which;
   }, false);
 
@@ -130,6 +150,23 @@
     }
   };*/
 
+  function Scene() {
+    this.id = scenes.length;
+    scenes.push(this);
+  }
+
+  Scene.prototype = {
+    constructor: Scene,
+    load: function () {},
+    paint: function (ctx) {},
+    act: function () {}
+  };
+
+  function loadScene(scene) {
+    currentScene = scene.id;
+    scenes[currentScene].load();
+  }
+
   function random(max) {
     return ~~(Math.random() * max);
   }
@@ -143,7 +180,92 @@
     }
   }
 
-  function reset() {
+  function addHighscore(score) {
+    posHighscore = 0;
+    while (highscores[posHighscore] > score && posHighscore < highscores.length) {
+      posHighscore += 1;
+    }
+    highscores.splice(posHighscore, 0, score);
+    if (highscores.length > 10) {
+      highscores.length = 10;
+    }
+    localStorage.highscores = highscores.join(',');
+  }
+
+  function repaint() {
+    window.requestAnimationFrame(repaint);
+    if (scenes.length) {
+      scenes[currentScene].paint(ctx);
+    }
+  }
+
+  function run() {
+    setTimeout(run, 50);
+    if (scenes.length) {
+      scenes[currentScene].act();
+    }
+  }
+
+  function init() {
+    // Get canvas and context
+    canvas = document.getElementById('canvas');
+    ctx = canvas.getContext('2d');
+
+    // Load assets
+    iBody.src = 'assets/body.png';
+    iFood.src = 'assets/fruit.png';
+    if (canPlayOgg()) {
+      aEat.src = 'assets/chomp.ogg';
+      aDie.src = 'assets/dies.ogg';
+    } else {
+      aEat.src = 'assets/chomp.m4a';
+      aDie.src = 'assets/dies.m4a';
+    }
+
+    // Create food
+    food = new Rectangle(80, 80, 10, 10);
+
+    // Create walls
+    //wall.push(new Rectangle(100, 50, 10, 10));
+    //wall.push(new Rectangle(100, 100, 10, 10));
+    //wall.push(new Rectangle(200, 50, 10, 10));
+    //wall.push(new Rectangle(200, 100, 10, 10));
+
+    // Load saved highscores
+    if (localStorage.highscores) {
+      highscores = localStorage.highscores.split(',');
+    }
+
+    // Start game
+    run();
+    repaint();
+  }
+
+  // Main Scene
+  mainScene = new Scene();
+
+  mainScene.paint = function (ctx) {
+    // Clean canvas
+    ctx.fillStyle = '#09232f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Draw title
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText('SNAKE', 150, 60);
+    ctx.fillText('Press Enter', 150, 90);
+  };
+
+  mainScene.act = function () {
+    // Load next scene
+    if (lastPress === KEY_ENTER) {
+      loadScene(highscoresScene);
+      lastPress = null;
+    }
+  };
+
+  // Game Scene
+  gameScene = new Scene();
+  gameScene.load = function () {
     score = 0;
     dir = 1;
     body.length = 0;
@@ -153,44 +275,36 @@
     food.x = random(canvas.width / 10 - 1) * 10;
     food.y = random(canvas.height / 10 - 1) * 10;
     gameover = false;
-  }
+  };
 
-  function paint(ctx) {
+  gameScene.paint = function (ctx) {
     var i = 0,
-    l = 0;
+        l = 0;
 
     // Clean canvas
     ctx.fillStyle = '#09232f';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     // Draw player
-    //ctx.fillStyle = '#fff';
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = '#09232f';
     for (i = 0, l = body.length; i < l; i += 1) {
-      //body[i].fill(ctx);
       body[i].drawImage(ctx, iBody);
     }
-
     // Draw walls
     //ctx.fillStyle = '#999';
-    //ctx.strokeStyle = '#999';
-    //for(i = 0 ,l = wall.length; i < l; i += 1) {
-    //  wall[i].fill(ctx);
+    //for (i = 0, l = wall.length; i < l; i += 1) {
+    //
+    //wall[i].fill(ctx);
     //}
 
     // Draw food
-    //ctx.fillStyle = '#337ab7';
-    //food.fill(ctx);
-    ctx.strokeStyle = '#337ab7';
+    ctx.strokeStyle = '#f00';
     food.drawImage(ctx, iFood);
-
-    // Debug last key pressed
-    ctx.fillStyle = '#fff';
-    //ctx.fillText('Last Press: ' + lastPress, 0, 20);
-
     // Draw score
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
     ctx.fillText('Score: ' + score, 0, 10);
-
+    // Debug last key pressed
+    //ctx.fillText('Last Press: '+lastPress,0,20);
     // Draw pause
     if (pause) {
       ctx.textAlign = 'center';
@@ -199,18 +313,17 @@
       } else {
         ctx.fillText('PAUSE', 150, 75);
       }
-      ctx.textAlign = 'left';
     }
-  }
+  };
 
-  function act() {
+  gameScene.act = function () {
     var i = 0,
         l = 0;
 
     if (!pause) {
       // GameOver Reset
       if (gameover) {
-        reset();
+        loadScene(highscoresScene);
       }
 
       // Move Body
@@ -218,7 +331,6 @@
         body[i].x = body[i - 1].x;
         body[i].y = body[i - 1].y;
       }
-
       // Change Direction
       if (lastPress === KEY_UP && dir !== 2) {
         dir = 0;
@@ -249,16 +361,25 @@
 
       // Out Screen
       if (body[0].x > canvas.width - body[0].width) {
-      body[0].x = 0;
+        body[0].x = 0;
       }
       if (body[0].y > canvas.height - body[0].height) {
-      body[0].y = 0;
+        body[0].y = 0;
       }
       if (body[0].x < 0) {
-      body[0].x = canvas.width - body[0].width;
+        body[0].x = canvas.width - body[0].width;
       }
       if (body[0].y < 0) {
         body[0].y = canvas.height - body[0].height;
+      }
+
+      // Food Intersects
+      if (body[0].intersects(food)) {
+        body.push(new Rectangle(0, 0, 10, 10));
+        score += 1;
+        food.x = random(canvas.width / 10 - 1) * 10;
+        food.y = random(canvas.height / 10 - 1) * 10;
+        aEat.play();
       }
 
       // Wall Intersects
@@ -280,65 +401,50 @@
           gameover = true;
           pause = true;
           aDie.play();
+          addHighscore(score);
         }
       }
-
-      // Food Intersects
-      if (body[0].intersects(food)) {
-        body.push(new Rectangle(food.x, food.y, 10, 10));
-        score += 1;
-        food.x = random(canvas.width / 10 - 1) * 10;
-        food.y = random(canvas.height / 10 - 1) * 10;
-        aEat.play();
-      }
     }
-
     // Pause/Unpause
     if (lastPress === KEY_ENTER) {
       pause = !pause;
       lastPress = null;
     }
-  }
+  };
 
-  function repaint() {
-    window.requestAnimationFrame(repaint);
-    paint(ctx);
-  }
+  // Highscore Scene
+  highscoresScene = new Scene();
+  highscoresScene.paint = function (ctx) {
+    var i = 0,
+    l = 0;
 
-  function run() {
-    setTimeout(run, 50);
-    act();
-  }
+    // Clean canvas
+    ctx.fillStyle = '#09232f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  function init() {
-    // Get canvas and context
-    canvas = document.getElementById('canvas');
-    ctx = canvas.getContext('2d');
+    // Draw title
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText('HIGH SCORES', 150, 30);
 
-    // Load assets
-    iBody.src = 'assets/body.png';
-    iFood.src = 'assets/fruit.png';
-    if (canPlayOgg()) {
-      aEat.src = 'assets/chomp.ogg';
-      aDie.src = 'assets/dies.ogg';
-    } else {
-      aEat.src = 'assets/chomp.m4a';
-      aDie.src = 'assets/dies.m4a';
+    // Draw high scores
+    ctx.textAlign = 'right';
+    for (i = 0, l = highscores.length; i < l; i += 1) {
+      if (i === posHighscore) {
+        ctx.fillText('*' + highscores[i], 180, 40 + i * 10);
+      } else {
+        ctx.fillText(highscores[i], 180, 40 + i * 10);
+      }
     }
+  };
 
-    // Create food
-    food = new Rectangle(80, 80, 10, 10);
-
-    // Create walls
-    //wall.push(new Rectangle(100, 50, 10, 10));
-    //wall.push(new Rectangle(100, 100, 10, 10));
-    //wall.push(new Rectangle(200, 50, 10, 10));
-    //wall.push(new Rectangle(200, 100, 10, 10));
-
-    // Start game
-    run();
-    repaint();
-  }
+  highscoresScene.act = function () {
+    // Load next scene
+    if (lastPress === KEY_ENTER) {
+      loadScene(gameScene);
+      lastPress = null;
+    }
+  };
 
   window.addEventListener('load', init, false);
 }(window));
