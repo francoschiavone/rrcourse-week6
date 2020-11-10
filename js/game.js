@@ -248,8 +248,6 @@
     // Get canvas and context
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
-    canvas.width = 600;
-    canvas.height = 300;
 
     // Load buffer
     buffer = document.createElement('canvas');
@@ -361,6 +359,7 @@
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'left';
     ctx.fillText('Score: ' + score, 0, 10);
+    ctx.textAlign = 'center';
     ctx.fillText('FPS: ' + FPS, 150, 10);
     // Debug last key pressed
     //ctx.fillText('Last Press: '+lastPress,0,20);
