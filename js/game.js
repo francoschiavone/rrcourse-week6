@@ -17,6 +17,11 @@
       FPS = 0,
       frames = 0,
       acumDelta = 0,
+      buffer = null,
+      bufferCtx = null,
+      bufferScale = 1,
+      bufferOffsetX = 0,
+      bufferOffsetY = 0,
       //var wall = [],
       highscores = [],
       posHighscore = 10,
@@ -43,11 +48,13 @@
   }());
 
   function resize() {
-    var w = window.innerWidth / canvas.width;
-    var h = window.innerHeight / canvas.height;
-    var scale = Math.min(h, w);
-    canvas.style.width = (canvas.width * scale) + 'px';
-    canvas.style.height = (canvas.height * scale) + 'px';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var w = window.innerWidth / buffer.width;
+    var h = window.innerHeight / buffer.height;
+    bufferScale = Math.min(h, w);
+    bufferOffsetX = (canvas.width - (buffer.width * bufferScale)) / 2;
+    bufferOffsetY = (canvas.height - (buffer.height * bufferScale)) / 2;
   }
 
   document.addEventListener('keydown', function (evt) {
@@ -238,6 +245,14 @@
     // Get canvas and context
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
+    canvas.width = 600;
+    canvas.height = 300;
+
+    // Load buffer
+    buffer = document.createElement('canvas');
+    bufferCtx = buffer.getContext('2d');
+    buffer.width = 300;
+    buffer.height = 150;
 
     // Load assets
     iBody.src = 'assets/body.png';
