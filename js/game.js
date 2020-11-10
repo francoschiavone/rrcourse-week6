@@ -42,6 +42,14 @@
       };
   }());
 
+  function resize() {
+    var w = window.innerWidth / canvas.width;
+    var h = window.innerHeight / canvas.height;
+    var scale = Math.min(h, w);
+    canvas.style.width = (canvas.width * scale) + 'px';
+    canvas.style.height = (canvas.height * scale) + 'px';
+  }
+
   document.addEventListener('keydown', function (evt) {
     if (evt.which >= 37 && evt.which <= 40) {
       evt.preventDefault();
@@ -469,5 +477,6 @@
     }
   };
 
-  window.addEventListener('load', init, false);
+  window.addEventListener('load', init, false)
+  window.addEventListener('resize', init, false);
 }(window));
