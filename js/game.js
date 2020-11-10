@@ -319,8 +319,8 @@
     iBody.src = 'assets/body.png';
     iFood.src = 'assets/fruit.png';
     if (canPlayOgg()) {
-      aEat.src = 'assets/chomp.oga';
-      aDie.src = 'assets/dies.oga';
+      aEat.src = 'assets/chomp.ogg';
+      aDie.src = 'assets/dies.ogg';
     } else {
       aEat.src = 'assets/chomp.m4a';
       aDie.src = 'assets/dies.m4a';
