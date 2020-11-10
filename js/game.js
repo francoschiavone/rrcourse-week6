@@ -4,7 +4,7 @@
   var canvas = null,
       ctx = null,
       lastPress = null,
-      pause = true,
+      pause = false,
       gameover = false,
       currentScene = 0,
       scenes = [],
@@ -27,8 +27,10 @@
       posHighscore = 10,
       body = [],
       food = null,
+      apple = null,
       iBody = new Image(),
       iFood = new Image(),
+      iApple = new Image(),
       aEat = new Audio(),
       aDie = new Audio(),
 
@@ -257,6 +259,7 @@
     // Load assets
     iBody.src = 'assets/body.png';
     iFood.src = 'assets/fruit.png';
+    iApple.src = 'assets/apple.png';
     if (canPlayOgg()) {
       aEat.src = 'assets/chomp.ogg';
       aDie.src = 'assets/dies.ogg';
@@ -267,6 +270,9 @@
 
     // Create food
     food = new Rectangle(80, 80, 10, 10);
+
+    // Create apple
+    apple = new Rectangle(20, 50, 10, 10);
 
     // Create walls
     //wall.push(new Rectangle(100, 50, 10, 10));
@@ -318,6 +324,9 @@
     body.push(new Rectangle(0, 0, 10, 10));
     food.x = random(canvas.width / 10 - 1) * 10;
     food.y = random(canvas.height / 10 - 1) * 10;
+
+    apple.x = random(canvas.width / 10 - 1) * 10;
+    apple.y = random(canvas.height / 10 - 1) * 10;
     gameover = false;
   };
 
@@ -343,6 +352,10 @@
     // Draw food
     ctx.strokeStyle = '#f00';
     food.drawImage(ctx, iFood);
+
+    // Draw apple
+    apple.drawImage(ctx, iApple);
+
     // Draw score
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'left';
@@ -424,6 +437,14 @@
         score += 1;
         food.x = random(canvas.width / 10 - 1) * 10;
         food.y = random(canvas.height / 10 - 1) * 10;
+        aEat.play();
+      }
+
+      // Apple Intersects
+      if (body[0].intersects(apple)) {
+        score += 5;
+        apple.x = random(canvas.width / 10 - 1) * 10;
+        apple.y = random(canvas.height / 10 - 1) * 10;
         aEat.play();
       }
 
